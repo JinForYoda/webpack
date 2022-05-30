@@ -1,10 +1,9 @@
-function foo(...args) {
-    console.log(args)
-    return function (b) {
-        return function (c) {
-            return b + c
-        }
-    }
+function foo() {
+	let n = 0
+	for (let i = 0; i < 10; i++) {
+		n++
+		const a = n
+		setTimeout(() => console.log(a))
+	}
 }
-
-console.log(foo(1)(2)(3)(4)(5)(6)(7))
+foo()

@@ -26,6 +26,7 @@ module.exports = {
 		},
 		compress: true,
 		port: 5051,
+		historyApiFallback: true,
 		client: {
 			logging: 'none',
 		},
