@@ -5,10 +5,11 @@ const createStyledComponentsTransformer = require('typescript-plugin-styled-comp
 const styledComponentsTransformer = createStyledComponentsTransformer()
 const ESLintPlugin = require('eslint-webpack-plugin')
 module.exports = {
-	entry: './src/index.tsx',
+	entry: path.resolve(__dirname, 'src', 'index.tsx'),
 	output: {
-		path: path.join(__dirname, 'dist'),
+		path: path.resolve(__dirname, 'dist'),
 		filename: 'index.bundle.js',
+		publicPath: '/',
 	},
 	mode: process.env.NODE_ENV || 'development',
 	devtool: 'eval',
