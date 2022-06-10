@@ -50,7 +50,7 @@ module.exports = {
 		historyApiFallback: {
 			disableDotRule: true,
 			index: publicUrlOrPath,
-			ewrites: [{ from: /\/webpack\/[^?]/, to: '/404.html' }],
+			rewrites: [{ from: /\/webpack\/[^?]/, to: '/404.html' }],
 		},
 		client: {
 			logging: 'none',
