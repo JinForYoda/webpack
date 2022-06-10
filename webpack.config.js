@@ -4,12 +4,21 @@ const TsconfigPathsPlugin = require('tsconfig-paths-webpack-plugin')
 const createStyledComponentsTransformer = require('typescript-plugin-styled-components').default
 const styledComponentsTransformer = createStyledComponentsTransformer()
 const ESLintPlugin = require('eslint-webpack-plugin')
+const getPublicUrlOrPath = require('react-dev-utils/getPublicUrlOrPath')
+const evalSourceMapMiddleware = require('react-dev-utils/evalSourceMapMiddleware')
+const redirectServedPath = require('react-dev-utils/redirectServedPathMiddleware')
+const noopServiceWorkerMiddleware = require('react-dev-utils/noopServiceWorkerMiddleware')
+const publicUrlOrPath = getPublicUrlOrPath(
+	process.env.NODE_ENV === 'development',
+	require(path.resolve(__dirname, 'package.json')).homepage,
+	process.env.PUBLIC_URL
+)
 module.exports = {
 	entry: path.resolve(__dirname, 'src', 'index.tsx'),
 	output: {
 		path: path.resolve(__dirname, 'dist'),
 		filename: 'index.bundle.js',
-		publicPath: '/',
+		publicPath: publicUrlOrPath,
 	},
 	mode: process.env.NODE_ENV || 'development',
 	devtool: 'eval',
@@ -24,10 +33,25 @@ module.exports = {
 	devServer: {
 		static: {
 			directory: path.join(__dirname, 'public'),
+			publicPath: [publicUrlOrPath],
 		},
 		compress: true,
 		port: 5051,
-		historyApiFallback: true,
+		devMiddleware: {
+			publicPath: publicUrlOrPath.slice(0, -1),
+		},
+		onBeforeSetupMiddleware(devServer) {
+			devServer.app.use(evalSourceMapMiddleware(devServer))
+		},
+		onAfterSetupMiddleware(devServer) {
+			devServer.app.use(redirectServedPath(publicUrlOrPath))
+			devServer.app.use(noopServiceWorkerMiddleware(publicUrlOrPath))
+		},
+		historyApiFallback: {
+			disableDotRule: true,
+			index: publicUrlOrPath,
+			ewrites: [{ from: /\/webpack\/[^?]/, to: '/404.html' }],
+		},
 		client: {
 			logging: 'none',
 		},
