@@ -1,13 +1,11 @@
 const path = require('path')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
+const { WebpackManifestPlugin } = require('webpack-manifest-plugin')
 const TsconfigPathsPlugin = require('tsconfig-paths-webpack-plugin')
 const createStyledComponentsTransformer = require('typescript-plugin-styled-components').default
 const styledComponentsTransformer = createStyledComponentsTransformer()
 const ESLintPlugin = require('eslint-webpack-plugin')
 const getPublicUrlOrPath = require('react-dev-utils/getPublicUrlOrPath')
-const evalSourceMapMiddleware = require('react-dev-utils/evalSourceMapMiddleware')
-const redirectServedPath = require('react-dev-utils/redirectServedPathMiddleware')
-const noopServiceWorkerMiddleware = require('react-dev-utils/noopServiceWorkerMiddleware')
 const publicUrlOrPath = getPublicUrlOrPath(
 	process.env.NODE_ENV === 'development',
 	require(path.resolve(__dirname, 'package.json')).homepage,
@@ -37,20 +35,10 @@ module.exports = {
 		},
 		compress: true,
 		port: 5051,
-		devMiddleware: {
-			publicPath: publicUrlOrPath.slice(0, -1),
-		},
-		onBeforeSetupMiddleware(devServer) {
-			devServer.app.use(evalSourceMapMiddleware(devServer))
-		},
-		onAfterSetupMiddleware(devServer) {
-			devServer.app.use(redirectServedPath(publicUrlOrPath))
-			devServer.app.use(noopServiceWorkerMiddleware(publicUrlOrPath))
-		},
 		historyApiFallback: {
 			disableDotRule: true,
 			index: publicUrlOrPath,
-			rewrites: [{ from: /\/webpack\/[^?]/, to: '/404.html' }],
+			// rewrites: [{ from: /\/webpack\/[^?]/, to: '/404.html' }],
 		},
 		client: {
 			logging: 'none',
@@ -88,5 +76,23 @@ module.exports = {
 			template: path.join(__dirname, 'public', 'index.html'),
 		}),
 		new ESLintPlugin(),
+		new WebpackManifestPlugin({
+			fileName: 'asset-manifest.json',
+			publicPath: publicUrlOrPath,
+			generate: (seed, files, entrypoints) => {
+				const manifestFiles = files.reduce((manifest, file) => {
+					manifest[file.name] = file.path
+					return manifest
+				}, seed)
+				const entrypointFiles = entrypoints.main.filter(
+					(fileName) => !fileName.endsWith('.map')
+				)
+
+				return {
+					files: manifestFiles,
+					entrypoints: entrypointFiles,
+				}
+			},
+		}),
 	],
 }
